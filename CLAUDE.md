@@ -8,6 +8,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Before writing any code, always read the relevant documentation file(s) in the `/docs` directory first.** This is a hard requirement — do not rely on training data or assumptions. The `/docs` directory is the source of truth for how this project's patterns, APIs, and conventions work.
 
+### Available docs files:
+
+- `docs/ui.md` — UI and component standards
+- `docs/data-fetching.md` — Data fetching and database query standards
+
 ## Commands
 
 ```bash
@@ -30,8 +35,8 @@ npm run lint     # Run ESLint directly (not next lint — removed in v16)
 
 ```tsx
 export default async function Page(props: PageProps<'/blog/[slug]'>) {
-  const { slug } = await props.params
-  const query = await props.searchParams
+  const { slug } = await props.params;
+  const query = await props.searchParams;
 }
 ```
 
@@ -40,6 +45,7 @@ Run `npx next typegen` to generate `PageProps`, `LayoutProps`, and `RouteContext
 **`middleware` → `proxy`** — The `middleware.ts` file and `middleware` export are deprecated. Rename to `proxy.ts` and export a `proxy` function. The `edge` runtime is not supported in `proxy`; use Node.js only.
 
 **`next/image` defaults changed**:
+
 - `minimumCacheTTL`: 60s → 4 hours
 - `imageSizes`: `16` removed from defaults
 - `qualities`: now only `[75]` by default
@@ -48,6 +54,7 @@ Run `npx next typegen` to generate `PageProps`, `LayoutProps`, and `RouteContext
 - `next/legacy/image` deprecated — use `next/image`
 
 **Caching APIs**:
+
 - `cacheLife` and `cacheTag` are stable — drop the `unstable_` prefix
 - `revalidateTag` now requires a second `cacheLife` profile argument: `revalidateTag('posts', 'max')`
 - New: `updateTag` (Server Actions only) for immediate cache invalidation
