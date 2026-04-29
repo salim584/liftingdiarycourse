@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,11 +13,9 @@ type Props = {
 
 export default function WorkoutDashboard({ workouts, selectedDate }: Props) {
   const router = useRouter();
-  const [date, setDate] = useState<Date>(selectedDate);
 
   function handleDateSelect(d: Date | undefined) {
     if (!d) return;
-    setDate(d);
     const iso = format(d, "yyyy-MM-dd");
     router.push(`/dashboard?date=${iso}`);
   }
@@ -33,7 +30,7 @@ export default function WorkoutDashboard({ workouts, selectedDate }: Props) {
             <p className="text-sm font-medium text-muted-foreground mb-2">Select Date</p>
             <Calendar
               mode="single"
-              selected={date}
+              selected={selectedDate}
               onSelect={handleDateSelect}
             />
           </CardContent>
@@ -41,7 +38,7 @@ export default function WorkoutDashboard({ workouts, selectedDate }: Props) {
 
         <div className="flex flex-col gap-4 flex-1 min-w-0">
           <h2 className="text-lg font-medium">
-            {format(date, "do MMM yyyy")}
+            {format(selectedDate, "do MMM yyyy")}
           </h2>
 
           {workouts.length === 0 ? (

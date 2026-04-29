@@ -3,9 +3,11 @@ import { redirect } from "next/navigation";
 import { format } from "date-fns";
 import { getWorkoutsForUserByDate } from "@/data/workouts";
 import WorkoutDashboard from "./WorkoutDashboard";
-import type { PageProps } from "@/.next/types/app/dashboard/page";
+type Props = {
+  searchParams: Promise<{ date?: string }>
+}
 
-export default async function DashboardPage(props: PageProps) {
+export default async function DashboardPage(props: Props) {
   const user = await currentUser();
   if (!user) redirect("/sign-in");
 
