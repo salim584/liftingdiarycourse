@@ -12,6 +12,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - `docs/ui.md` — UI and component standards
 - `docs/data-fetching.md` — Data fetching and database query standards
+- `docs/auth.md` — Authentication standards (Clerk)
+- `docs/data-mutations.md` — Data mutation and Server Action standards
 
 ## Commands
 
