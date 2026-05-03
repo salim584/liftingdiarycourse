@@ -12,6 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { createWorkoutAction } from "./actions"
 
 export default function NewWorkoutForm() {
+  const router = useRouter()
   const [name, setName] = useState("")
   const [date, setDate] = useState<Date>(new Date())
   const [open, setOpen] = useState(false)
@@ -24,8 +25,9 @@ export default function NewWorkoutForm() {
     setPending(true)
     try {
       await createWorkoutAction(name, format(date, "yyyy-MM-dd"))
+      router.push(`/dashboard?date=${format(date, "yyyy-MM-dd")}`)
     } catch (err: unknown) {
-      if (err instanceof Error && err.message !== "NEXT_REDIRECT") {
+      if (err instanceof Error) {
         setError(err.message)
       }
     } finally {
@@ -76,9 +78,19 @@ export default function NewWorkoutForm() {
 
           {error && <p className="text-sm text-destructive">{error}</p>}
 
-          <Button type="submit" className="w-full" disabled={pending}>
-            {pending ? "Creating…" : "Create Workout"}
-          </Button>
+          <div className="flex gap-2">
+            <Button type="submit" className="flex-1" disabled={pending}>
+              {pending ? "Creating…" : "Create Workout"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1"
+              onClick={() => router.push("/dashboard")}
+            >
+              Cancel
+            </Button>
+          </div>
         </form>
       </CardContent>
     </Card>

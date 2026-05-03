@@ -3,7 +3,7 @@
 import { z } from "zod"
 import { auth } from "@clerk/nextjs/server"
 import { createWorkout } from "@/data/workouts"
-import { redirect } from "next/navigation"
+
 
 const createWorkoutSchema = z.object({
   name: z.string().min(1).max(100),
@@ -16,6 +16,6 @@ export async function createWorkoutAction(name: string, date: string) {
   const { userId } = await auth()
   if (!userId) throw new Error("Unauthorized")
 
-  const workout = await createWorkout(userId, validName, validDate)
-  redirect(`/dashboard?date=${validDate}`)
+  await createWorkout(userId, validName, validDate)
+  
 }

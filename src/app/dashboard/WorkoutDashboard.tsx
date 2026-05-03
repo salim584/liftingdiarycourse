@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { Calendar } from "@/components/ui/calendar";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
 import type { WorkoutWithExercises } from "@/data/workouts";
@@ -42,10 +43,33 @@ export default function WorkoutDashboard({ workouts, selectedDate }: Props) {
           </h2>
 
           {workouts.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No workouts logged for this date.
-            </p>
-          ) : (
+  <div className="flex flex-col gap-3">
+    <p className="text-sm text-muted-foreground">
+      No workouts logged for this date.
+    </p>
+    <div className="flex gap-2">
+      <Button
+        onClick={() =>
+          router.push(
+            `/dashboard/workout/new?date=${format(selectedDate, "yyyy-MM-dd")}`
+          )
+        }
+      >
+        Log New Workout
+      </Button>
+      <Button
+        variant="outline"
+        onClick={() =>
+          router.push(
+            `/dashboard?date=${format(selectedDate, "yyyy-MM-dd")}`
+          )
+        }
+      >
+        Cancel
+      </Button>
+    </div>
+  </div>
+) : (
             workouts.map((workout) => (
               <Card key={workout.id} className="w-full">
                 <CardHeader className="pb-2">

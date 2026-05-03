@@ -20,18 +20,18 @@ Example mutation helpers:
 
 ```ts
 // src/data/workouts.ts
-import { db } from "@/db"
-import { workouts } from "@/db/schema"
-import { eq, and } from "drizzle-orm"
+import { db } from '@/db';
+import { workouts } from '@/db/schema';
+import { eq, and } from 'drizzle-orm';
 
 export async function createWorkout(userId: string, name: string, date: Date) {
-  return db.insert(workouts).values({ userId, name, date }).returning()
+  return db.insert(workouts).values({ userId, name, date }).returning();
 }
 
 export async function deleteWorkout(workoutId: string, userId: string) {
   return db
     .delete(workouts)
-    .where(and(eq(workouts.id, workoutId), eq(workouts.userId, userId)))
+    .where(and(eq(workouts.id, workoutId), eq(workouts.userId, userId)));
 }
 ```
 
@@ -40,6 +40,7 @@ export async function deleteWorkout(workoutId: string, userId: string) {
 **All data mutations must be triggered via Server Actions defined in colocated `actions.ts` files.**
 
 Do not mutate data in:
+
 - Route handlers (`app/api/`)
 - Client components (`"use client"`)
 - Server Components directly
@@ -61,7 +62,7 @@ src/app/
 Every `actions.ts` file must start with the `"use server"` directive:
 
 ```ts
-"use server"
+'use server';
 ```
 
 ## Rule: Typed Parameters — No `FormData`
@@ -73,7 +74,7 @@ Do not do this:
 ```ts
 // WRONG — FormData is not allowed
 export async function createWorkout(formData: FormData) {
-  const name = formData.get("name") as string
+  const name = formData.get('name') as string;
 }
 ```
 
@@ -93,7 +94,7 @@ export async function createWorkout(name: string, date: Date) {
 Install and import from `zod`:
 
 ```ts
-import { z } from "zod"
+import { z } from 'zod';
 ```
 
 Define a schema and parse at the top of every action. Throw or return early on validation failure.
@@ -101,22 +102,25 @@ Define a schema and parse at the top of every action. Throw or return early on v
 Example:
 
 ```ts
-"use server"
+'use server';
 
-import { z } from "zod"
-import { auth } from "@/auth"
-import { createWorkout } from "@/data/workouts"
+import { z } from 'zod';
+import { auth } from '@/auth';
+import { createWorkout } from '@/data/workouts';
 
 const createWorkoutSchema = z.object({
   name: z.string().min(1).max(100),
   date: z.coerce.date(),
-})
+});
 
 export async function createWorkoutAction(name: string, date: Date) {
-  const { name: validName, date: validDate } = createWorkoutSchema.parse({ name, date })
+  const { name: validName, date: validDate } = createWorkoutSchema.parse({
+    name,
+    date,
+  });
 
-  const session = await auth()
-  await createWorkout(session.user.id, validName, validDate)
+  const session = await auth();
+  await createWorkout(session.user.id, validName, validDate);
 }
 ```
 
@@ -129,7 +133,7 @@ Never do this:
 ```ts
 // WRONG — userId comes from the client
 export async function deleteWorkoutAction(workoutId: string, userId: string) {
-  await deleteWorkout(workoutId, userId)
+  await deleteWorkout(workoutId, userId);
 }
 ```
 
@@ -138,11 +142,11 @@ Always do this:
 ```ts
 // CORRECT — userId comes from the server session
 export async function deleteWorkoutAction(workoutId: string) {
-  const workoutIdSchema = z.string().uuid()
-  const validWorkoutId = workoutIdSchema.parse(workoutId)
+  const workoutIdSchema = z.string().uuid();
+  const validWorkoutId = workoutIdSchema.parse(workoutId);
 
-  const session = await auth()
-  await deleteWorkout(validWorkoutId, session.user.id)
+  const session = await auth();
+  await deleteWorkout(validWorkoutId, session.user.id);
 }
 ```
 
@@ -150,37 +154,64 @@ export async function deleteWorkoutAction(workoutId: string) {
 
 ```ts
 // src/app/workouts/actions.ts
-"use server"
+'use server';
 
-import { z } from "zod"
-import { auth } from "@/auth"
-import { createWorkout, deleteWorkout, updateWorkout } from "@/data/workouts"
+import { z } from 'zod';
+import { auth } from '@/auth';
+import { createWorkout, deleteWorkout, updateWorkout } from '@/data/workouts';
 
 const createWorkoutSchema = z.object({
   name: z.string().min(1).max(100),
   date: z.coerce.date(),
-})
+});
 
 export async function createWorkoutAction(name: string, date: Date) {
-  const validated = createWorkoutSchema.parse({ name, date })
-  const session = await auth()
-  return createWorkout(session.user.id, validated.name, validated.date)
+  const validated = createWorkoutSchema.parse({ name, date });
+  const session = await auth();
+  return createWorkout(session.user.id, validated.name, validated.date);
 }
 
 const updateWorkoutSchema = z.object({
   workoutId: z.string().uuid(),
   name: z.string().min(1).max(100),
-})
+});
 
 export async function updateWorkoutAction(workoutId: string, name: string) {
-  const { workoutId: validId, name: validName } = updateWorkoutSchema.parse({ workoutId, name })
-  const session = await auth()
-  return updateWorkout(validId, session.user.id, validName)
+  const { workoutId: validId, name: validName } = updateWorkoutSchema.parse({
+    workoutId,
+    name,
+  });
+  const session = await auth();
+  return updateWorkout(validId, session.user.id, validName);
 }
 
 export async function deleteWorkoutAction(workoutId: string) {
-  const validId = z.string().uuid().parse(workoutId)
-  const session = await auth()
-  return deleteWorkout(validId, session.user.id)
+  const validId = z.string().uuid().parse(workoutId);
+  const session = await auth();
+  return deleteWorkout(validId, session.user.id);
 }
 ```
+
+## Redirects After Mutations
+
+Do not use `redirect()` from `next/navigation` inside server actions. Instead, handle redirects on the client side after the server action resolves.
+
+**❌ Don't do this (in a server action):**
+
+```ts
+export async function createWorkoutAction(name: string, date: string) {
+  await createWorkout(userId, name, date);
+  redirect(`/dashboard?date=${date}`); // ❌ avoid this
+}
+```
+
+**✅ Do this instead (in the client component):**
+
+```ts
+async function handleSubmit() {
+  await createWorkoutAction(name, date);
+  router.push(`/dashboard?date=${date}`); // ✅ redirect client-side
+}
+```
+
+This avoids Next.js throwing a `NEXT_REDIRECT` error that needs to be caught and filtered out in client components.
