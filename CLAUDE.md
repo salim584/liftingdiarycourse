@@ -14,6 +14,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `docs/data-fetching.md` — Data fetching and database query standards
 - `docs/auth.md` — Authentication standards (Clerk)
 - `docs/data-mutations.md` — Data mutation and Server Action standards
+- `docs/routing.md` — App routing structure and route protection standards
+- `docs/server-components.md` — Server Component standards (async params, data fetching, notFound)
 
 ## Commands
 
