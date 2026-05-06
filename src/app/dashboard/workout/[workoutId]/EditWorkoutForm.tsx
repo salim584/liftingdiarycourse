@@ -9,21 +9,27 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { updateWorkoutAction } from "./actions"
+import { updateWorkoutAction, addExerciseAction, removeExerciseAction } from "./actions"
+import type { WorkoutExerciseItem } from "@/data/workouts"
 
 type Props = {
   workoutId: string
   initialName: string
   initialDate: string
+  initialExercises: WorkoutExerciseItem[]
 }
 
-export default function EditWorkoutForm({ workoutId, initialName, initialDate }: Props) {
+export default function EditWorkoutForm({ workoutId, initialName, initialDate, initialExercises }: Props) {
   const router = useRouter()
   const [name, setName] = useState(initialName)
   const [date, setDate] = useState<Date>(parseISO(initialDate))
   const [open, setOpen] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
+
+  const [exercises, setExercises] = useState<WorkoutExerciseItem[]>(initialExercises)
+  const [exerciseName, setExerciseName] = useState("")
+  const [addingExercise, setAddingExercise] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -38,6 +44,33 @@ export default function EditWorkoutForm({ workoutId, initialName, initialDate }:
       }
     } finally {
       setPending(false)
+    }
+  }
+
+  async function handleAddExercise() {
+    const trimmed = exerciseName.trim()
+    if (!trimmed) return
+    setAddingExercise(true)
+    try {
+      const workoutExercise = await addExerciseAction(workoutId, trimmed)
+      setExercises((prev) => [
+        ...prev,
+        { workoutExerciseId: workoutExercise.id, name: trimmed, order: workoutExercise.order },
+      ])
+      setExerciseName("")
+    } catch (err: unknown) {
+      if (err instanceof Error) setError(err.message)
+    } finally {
+      setAddingExercise(false)
+    }
+  }
+
+  async function handleRemoveExercise(workoutExerciseId: string) {
+    try {
+      await removeExerciseAction(workoutExerciseId, workoutId)
+      setExercises((prev) => prev.filter((e) => e.workoutExerciseId !== workoutExerciseId))
+    } catch (err: unknown) {
+      if (err instanceof Error) setError(err.message)
     }
   }
 
@@ -80,6 +113,48 @@ export default function EditWorkoutForm({ workoutId, initialName, initialDate }:
                 />
               </PopoverContent>
             </Popover>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Exercises</Label>
+            {exercises.length > 0 && (
+              <ul className="space-y-1 mb-2">
+                {exercises.map((ex) => (
+                  <li key={ex.workoutExerciseId} className="flex items-center justify-between rounded-md border px-3 py-2 text-sm">
+                    <span>{ex.name}</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRemoveExercise(ex.workoutExerciseId)}
+                    >
+                      Remove
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="flex gap-2">
+              <Input
+                placeholder="Exercise name"
+                value={exerciseName}
+                onChange={(e) => setExerciseName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault()
+                    handleAddExercise()
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleAddExercise}
+                disabled={addingExercise || !exerciseName.trim()}
+              >
+                {addingExercise ? "Adding…" : "Add"}
+              </Button>
+            </div>
           </div>
 
           {error && <p className="text-sm text-destructive">{error}</p>}
