@@ -29,6 +29,47 @@ export type WorkoutWithExercises = {
   exercises: Exercise[]
 }
 
+type WorkoutExerciseRow = {
+  workoutExerciseId: string
+  exerciseName: string
+  order: number
+}
+
+export type WorkoutExerciseItem = {
+  workoutExerciseId: string
+  name: string
+  order: number
+}
+
+export async function getWorkoutWithExercises(workoutId: string, userId: string) {
+  const [workout] = await db
+    .select()
+    .from(workouts)
+    .where(and(eq(workouts.id, workoutId), eq(workouts.userId, userId)))
+
+  if (!workout) return null
+
+  const rows = await db
+    .select({
+      workoutExerciseId: workoutExercises.id,
+      exerciseName: exercises.name,
+      order: workoutExercises.order,
+    })
+    .from(workoutExercises)
+    .innerJoin(exercises, eq(exercises.id, workoutExercises.exerciseId))
+    .where(eq(workoutExercises.workoutId, workoutId))
+    .orderBy(workoutExercises.order)
+
+  return {
+    ...workout,
+    exercises: rows.map((r: WorkoutExerciseRow): WorkoutExerciseItem => ({
+      workoutExerciseId: r.workoutExerciseId,
+      name: r.exerciseName,
+      order: r.order,
+    })),
+  }
+}
+
 export async function getWorkoutById(workoutId: string, userId: string) {
   const [workout] = await db
     .select()

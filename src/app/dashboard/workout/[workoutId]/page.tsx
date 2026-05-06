@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation"
 import { auth } from "@clerk/nextjs/server"
-import { getWorkoutById } from "@/data/workouts"
+import { getWorkoutWithExercises } from "@/data/workouts"
 import EditWorkoutForm from "./EditWorkoutForm"
 
 type PageProps = {
@@ -13,7 +13,7 @@ export default async function EditWorkoutPage(props: PageProps) {
   const { userId } = await auth()
   if (!userId) return notFound()
 
-  const workout = await getWorkoutById(workoutId, userId)
+  const workout = await getWorkoutWithExercises(workoutId, userId)
   if (!workout) return notFound()
 
   return (
@@ -21,6 +21,7 @@ export default async function EditWorkoutPage(props: PageProps) {
       workoutId={workout.id}
       initialName={workout.name ?? ""}
       initialDate={workout.date ?? ""}
+      initialExercises={workout.exercises}
     />
   )
 }
