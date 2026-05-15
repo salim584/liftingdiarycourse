@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
@@ -71,7 +72,8 @@ export default function WorkoutDashboard({ workouts, selectedDate }: Props) {
   </div>
 ) : (
             workouts.map((workout) => (
-              <Card key={workout.id} className="w-full">
+              <Link key={workout.id} href={`/dashboard/workout/${workout.id}`} className="block">
+              <Card className="w-full hover:bg-muted/50 transition-colors cursor-pointer">
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-start">
                     <div className="flex flex-col gap-1">
@@ -112,6 +114,7 @@ export default function WorkoutDashboard({ workouts, selectedDate }: Props) {
                   </div>
                 </CardContent>
               </Card>
+              </Link>
             ))
           )}
         </div>
